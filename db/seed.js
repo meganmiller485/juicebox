@@ -1,5 +1,5 @@
 // grab our client with destructuring from the export in index.js
-const {client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts} = require('./index');
+const {client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts, getPostsByUser, getUserById} = require('./index');
 
 
 
@@ -82,29 +82,29 @@ async function createInitialPosts() {
         console.log("Starting to create initial posts...");
         const [albert, sandra, glamgal] = await getAllUsers();
 
-        const post1 = await createPost({
+        await createPost({
             authorId: albert.id,
             title: "First Post",
             content: "This is my first post and it's so great!"
         });
 
-        const post2 = await createPost({
+        await createPost({
             authorId: albert.id,
             title: "Second Post by Alby",
             content: "This is my second post and I am lovin it!"
         });
-        const post3 = await createPost({
+        await createPost({
             authorId: sandra.id,
             title: "Sandy's First Post",
             content: "My name is Sandra and I love the sand!"
         });
-        const post4 = await createPost({
+        await createPost({
             authorId: glamgal.id,
             title: "First Glamorous Post",
             content: "I. Am. Glam."
         });
 
-        console.log("posts: ", post1, post2, post3, post4)
+        // console.log("posts: ", post1, post2, post3, post4)
         console.log("Done creating posts...");
     } catch (error) {
         throw error;
@@ -134,8 +134,8 @@ async function rebuildDB() {
 async function testDB() {
     try {
         console.log("Starting to test database...")
-        //connect the client to the database, finally
-        // client.connect();
+        
+        //test our getAllUsers function
         console.log("Calling getAllUsers");
         const users = await getAllUsers();
         console.log("getAllUsers:", users);
@@ -153,7 +153,16 @@ async function testDB() {
         const posts = await getAllPosts();
         console.log("Result:", posts);
 
-
+        console.log("Calling updatePost on posts[0]");
+        const updatePostResult = await updatePost(posts[0].id, {
+          title: "New Title",
+          content: "Updated Content"
+        });
+        console.log("Result:", updatePostResult);
+    
+        console.log("Calling getUserById with 1");
+        const albert = await getUserById(1);
+        console.log("Result:", albert);
 
 
 

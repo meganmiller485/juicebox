@@ -21,6 +21,7 @@ async function createUser({username, password, name, location}){
 
 
 async function updateUser(id, fields = {}) {
+    console.log("these are our update fields:", fields);
     // build the set string
     const setString = Object.keys(fields).map(
       (key, index) => `"${ key }"=$${ index + 1 }`
@@ -72,9 +73,10 @@ async function createPost({authorId, title, content, active}) {
 };
 
 
-async function updatePost(id, {title, content, active}) {
-    // build the set string
-    const setString = Object.keys(title, content, active).map(
+async function updatePost(id, fields={}) {
+    
+    console.log("these are my update fields", fields)
+    const setString = Object.keys(fields).map(
         (key, index) => `"${ key }"=$${ index + 1 }`
       ).join(', ');
     
@@ -89,8 +91,10 @@ async function updatePost(id, {title, content, active}) {
         SET ${ setString }
         WHERE id=${ id }
         RETURNING *;
-      `, Object.values(title, content, active));
-  
+      `, Object.values(fields));
+    
+      
+      console.log(post);
       return post;
   
     } catch (error) {
@@ -100,11 +104,13 @@ async function updatePost(id, {title, content, active}) {
 
 async function getAllPosts() {
     try {
-        const {rows} = await client.query(
-            'SELECT "authorId", title, content, active FROM users;'
+        const {rows: posts} = await client.query(
+            `SELECT * FROM posts;`
         );
-    
-        return rows;
+        
+        // console.log(rows)
+        return posts;
+        
     } catch (error) {
       throw error;
     };
@@ -124,10 +130,25 @@ async function getPostsByUser(userId) {
 };
 
 async function getUserById(userId) {
-    const {rows} = await client.query(`
-        SELECT authorId FROM posts
-        WHERE "authorId"=${ userId };
+    try {
+        const {rows: [user]} = await client.query(`
+        SELECT id, username, password, name, location FROM users
+        WHERE id=${ userId };
     `)
+        delete user.password;
+
+        if(!user)
+        {return null};
+
+        user.posts = await getPostsByUser(user.id)
+        return user;
+
+    } catch (error) {
+        console.error(error);
+    }
+    
+    return rows;
+    //batman stuff
     
     
     
@@ -153,4 +174,6 @@ module.exports = {
     createPost,
     updatePost,
     getAllPosts,
+    getPostsByUser,
+    getUserById
 };
