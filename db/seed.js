@@ -1,5 +1,5 @@
 // grab our client with destructuring from the export in index.js
-const {client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts, getPostsByUser, getUserById} = require('./index');
+const {client, getAllUsers, createUser, updateUser, createPost, updatePost, getAllPosts, getPostsByUser, getUserById, createTags, addTagsToPost} = require('./index');
 
 
 
@@ -11,6 +11,8 @@ async function dropTables(){
         console.log("Starting to drop tables...");
 
         await client.query(`
+            DROP TABLE IF EXISTS post_tags;
+            DROP TABLE IF EXISTS tags;
             DROP TABLE IF EXISTS posts;
             DROP TABLE IF EXISTS users;
         `);
@@ -46,6 +48,20 @@ async function createTables() {
                 title VARCHAR(255) NOT NULL,
                 content TEXT NOT NULL,
                 active BOOLEAN DEFAULT true 
+            );
+        `);
+
+        await client.query(`
+            CREATE TABLE tags (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) UNIQUE NOT NULL
+            );
+        `);
+        
+        await client.query(`
+            CREATE TABLE post_tags (
+                "postId" INTEGER REFERENCES posts(id) UNIQUE NOT NULL,
+                "tagId" INTEGER REFERENCES tags(id) UNIQUE NOT NULL
             );
         `);
 
@@ -111,7 +127,29 @@ async function createInitialPosts() {
     }
 }
 
-
+async function createInitialTags() {
+    try {
+      console.log("Starting to create tags...");
+  
+      const [happy, sad, inspo, catman] = await createTags([
+        '#happy', 
+        '#worst-day-ever', 
+        '#youcandoanything',
+        '#catmandoeverything'
+      ]);
+  
+      const [postOne, postTwo, postThree] = await getAllPosts();
+  
+      await addTagsToPost(postOne.id, [happy, inspo]);
+      await addTagsToPost(postTwo.id, [sad, inspo]);
+      await addTagsToPost(postThree.id, [happy, catman, inspo]);
+  
+      console.log("Finished creating tags!");
+    } catch (error) {
+      console.log("Error creating tags!");
+      throw error;
+    }
+};
 
 
 
@@ -124,6 +162,7 @@ async function rebuildDB() {
         await createTables();
         await createInitialUsers();
         await createInitialPosts();
+        await createInitialTags();
     } catch (error) {
         console.error(error);
     };
@@ -164,7 +203,7 @@ async function testDB() {
         const albert = await getUserById(1);
         console.log("Result:", albert);
 
-
+        
 
 
         //queries are promises, so we can await them
