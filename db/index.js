@@ -271,7 +271,7 @@ async function createTags(tagList) {
 			tagList
 		);
 
-		console.log("this is tags", tags);
+		// console.log("this is tags", tags);
 		return tags;
 
 		// insert the tags, doing nothing on conflict
@@ -404,4 +404,5 @@ module.exports = {
 	getPostsByTagName,
 	getAllTags,
 	getUserByUsername,
+	getPostById,
 };
