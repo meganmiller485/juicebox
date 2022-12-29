@@ -119,7 +119,7 @@ postsRouter.get("/", async (req, res, next) => {
 			posts,
 		});
 	} catch ({ name, message }) {
-		next({ name, message });
+		next({ name: "No posts error", message: "No posts under requested user" });
 	}
 });
 
